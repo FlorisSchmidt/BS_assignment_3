@@ -148,32 +148,50 @@ public class Assignment3 {
     public State runLocalSearch() {
 
         //Perform Local Search
+        State currentState = selectRandomStart();
+        int m = 0;
+        while(m<=budget){
+            selectBestState(currentState,selectRandomNeighbor(currentState);
 
+        }
         State opt = selectOptimalState();
         return opt;
     }
 
     public State selectBestState(State current, State neighbor){
+        MRG32k3a arrival = getStream();
+        MRG32k3a service = getStream();
 
+        ThresholdQueue model = new ThresholdQueue(arrivalRate,avgService,avgHighService,maxTime,current.xval,current.yval,arrival,service);
+        ThresholdQueue model2 = new ThresholdQueue(arrivalRate,avgService,avgHighService,maxTime,neighbor.xval,neighbor.yval,arrival,service);
+        if(model.getAverageCosts().average()>model2.getAverageCosts().average()){
+            return neighbor;
+        }
         //Return best state
-
         return current;
     }
 
     public State selectRandomStart() {
-        State state;
-
         //Select a random state
-
-        return null;
+        State state = outputs[rng.nextInt(numStates)];
+        return state;
     }
 
     public State selectRandomNeighbor(State state) {
-        State neighbor;
-
         //Select a random neighbor
-
-        return null;
+        boolean illegal = true;
+        int x_offset = 0;
+        int y_offset = 0;
+        while (illegal) {
+            x_offset = rng.nextInt(2) - 1;
+            y_offset = rng.nextInt(2) - 1;
+            if (state.xval + x_offset <= xmax && state.xval + x_offset >= xmin && state.yval + y_offset <= ymax
+                    && state.yval >= ymin && !(x_offset == 0 && y_offset == 0)) {
+                illegal = false;
+            }
+        }
+        int[] vals = {state.xval + x_offset, (state.yval + y_offset)};
+        return getState(vals);
     }
 
     public double[] simulateCommonRandomNumbersRun(int k2, int K2){
