@@ -107,7 +107,7 @@ public class Assignment3 {
         long[] seed = new long[6];
 
         //Fill the long[] with random seeds
-
+        seed = rng.longs(6,0,49494444).toArray();
         MRG32k3a myrng = new MRG32k3a();
         myrng.setSeed(seed);
         return myrng;
@@ -165,7 +165,7 @@ public class Assignment3 {
 
         //Select a random state
 
-        return state;
+        return null;
     }
 
     public State selectRandomNeighbor(State state) {
@@ -173,32 +173,37 @@ public class Assignment3 {
 
         //Select a random neighbor
 
-        return neighbor;
+        return null;
     }
 
     public double[] simulateCommonRandomNumbersRun(int k2, int K2){
         double[] results = new double[2];
 
         //Perform CRN on (k,K) and (k2,K2) as parameters, average costs is result per run
-
+        MRG32k3a arrival = getStream();
+        MRG32k3a service = getStream();
+        ThresholdQueue model = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k, K, arrival, service);
+        ThresholdQueue model2 = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k2, K2, arrival, service);
+        results[0] = model.getAverageCosts().average();
+        results[1] = model2.getAverageCosts().average();
         return results;
     }
 
     public static void main(String[] args) {
-        int lower = ;              // k-threshold for queue
-        int upper = ;              // K-threshold for queue
-        int lower2 = ;             // k-threshold for alternative queue
-        int upper2 = ;             // K-threshold for alternative queue
-        double lambdaInv = ;      // Arrival rate
-        double muHighInv = ;      // Average service time
-        double muLowInv = ;       // Average service time
+        int lower = 5;              // k-threshold for queue
+        int upper = 20;              // K-threshold for queue
+        int lower2 = 10;             // k-threshold for alternative queue
+        int upper2 = 20;             // K-threshold for alternative queue
+        double lambdaInv = 1.5;      // Arrival rate
+        double muHighInv = 4;      // Average service time
+        double muLowInv = 2;       // Average service time
         double maxTime = 10000;      // Simulation endtime (seconds)
 
-        int kMin = ;
-        int kMax = ;
-        int KMin = ;
-        int KMax = ;
-        int budget = ;
+        int kMin = 5;
+        int kMax = 10;
+        int KMin = 10;
+        int KMax = 20;
+        int budget = 5000;
 
         Assignment3 crn = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
         crn.simulateCommonRandomNumbersRun(lower2,upper2);
