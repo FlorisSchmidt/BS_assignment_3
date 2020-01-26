@@ -7,12 +7,9 @@ package assignments;
 
 import assignments.ThresholdQueue;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Random;
 import umontreal.ssj.probdist.NormalDist;
-import umontreal.ssj.probdist.StudentDist;
 import umontreal.ssj.rng.MRG32k3a;
 import umontreal.ssj.simevents.Sim;
 import umontreal.ssj.stat.TallyStore;
@@ -151,9 +148,6 @@ public class Assignment3 {
             }
         }
         HashSet<State> I = selectCandidateSolutions(alpha);
-        State opt1 = selectOptimalState();
-        boolean sanity_check = I.contains(opt1);
-
 
         double remaining_runs = budget - initialRuns;
         for(int i = 0;i<numStates;i++) {
@@ -164,7 +158,6 @@ public class Assignment3 {
             }
         }
         State opt = selectOptimalState();
-        boolean sanity_check2 = I.contains(opt);
         return opt;
     }
 
@@ -256,11 +249,13 @@ public class Assignment3 {
         MRG32k3a service = getStream();
         MRG32k3a alt_arrival = arrival.clone();
         MRG32k3a alt_service = service.clone();
+
+        Sim.init();
         ThresholdQueue model = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k, K, arrival, service);
-        ThresholdQueue alt_model = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k2, K2, alt_arrival, alt_service);
-        model.simulateOneRun();
-        alt_model.simulateOneRun();
         results[0] = model.getAverageCosts().average();
+
+        Sim.init();
+        ThresholdQueue alt_model = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k2, K2, alt_arrival, alt_service);
         results[1] = alt_model.getAverageCosts().average();
         return results;
     }
@@ -283,9 +278,9 @@ public class Assignment3 {
 
         Assignment3 crn = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
         crn.simulateCommonRandomNumbersRun(lower2,upper2);
-//
-//        Assignment3 optimization = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
-//        State best = optimization.runLocalSearch();
+
+        Assignment3 optimization = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
+        optimization.runLocalSearch();
 
         Assignment3 optimization2 = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
         optimization2.runRankingSelection(100, 0.05);
