@@ -106,15 +106,31 @@ public class Assignment3 {
         return outputs[pos];
     }
 
+
     public MRG32k3a getStream() {
         long[] seed = new long[6];
-
+        long[] m1seeds;
+        long[] m2seeds;
         //Fill the long[] with random seeds
-        seed = rng.longs(6,0,49494444).toArray();
+        do {
+            m1seeds = rng.longs(3,0,4294967087L).toArray();
+        } while(m1seeds[0]==0 && m1seeds[1]==0 && m1seeds[2]==0);
+        do {
+            m2seeds = rng.longs(3,0,4294944443L).toArray();
+        } while(m2seeds[0]==0 && m2seeds[1]==0 && m2seeds[2]==0);
+
+        for(int i = 0;i<6;i++){
+            if(i<3){
+                seed[i] = m1seeds[i];
+            } else {
+                seed[i] = m2seeds[i-3];
+            }
+        }
         MRG32k3a myrng = new MRG32k3a();
         myrng.setSeed(seed);
         return myrng;
     }
+
 
     public void runSingleRun(int lower, int upper) {
         MRG32k3a arrival = getStream();
@@ -130,35 +146,36 @@ public class Assignment3 {
     public State runRankingSelection(int initialRuns, double alpha) {
     // Perform initial runs
         for(int i = 0;i<numStates;i++) {
-            for (int j = 0; j < (initialRuns); j++) {
+            for (int j = 0; j < (initialRuns/numStates); j++) {
                 runSingleRun(outputs[i].xval, outputs[i].yval);
             }
         }
         HashSet<State> I = selectCandidateSolutions(alpha);
+        State opt1 = selectOptimalState();
+        boolean sanity_check = I.contains(opt1);
 
-        double remaining_budget = 0.5 * budget;
+
+        double remaining_runs = budget - initialRuns;
         for(int i = 0;i<numStates;i++) {
             if(I.contains(outputs[i])) {
-                for (int j = 0; j < initialRuns; j++) {
+                for (int j = 0; j < remaining_runs/I.size(); j++) {
                     runSingleRun(outputs[i].xval, outputs[i].yval);
                 }
             }
         }
         State opt = selectOptimalState();
-        boolean sanity_check = I.contains(opt);
+        boolean sanity_check2 = I.contains(opt);
         return opt;
     }
 
     public HashSet<State> selectCandidateSolutions(double alpha) {
         HashSet<State> I = new HashSet();
-        StudentDist t_test = new StudentDist(numStates -1);
-        float fraction = ((float) 1) / (numStates -1);
-        double a_sidak = 1 - Math.pow(1-alpha, fraction);
+        double significanceCorrection  = new NormalDist().inverseF(Math.pow(1 - alpha, 1.0 / (numStates - 1)));
         boolean add = true;
         for(int i = 0; i < numStates; i++) {
             for(int j = 0; j < numStates; j++) {
-                if(i != j && outputs[i].values.average() < outputs[j].values.average() -
-                        t_test.inverseF(1-a_sidak) * (Math.sqrt(outputs[i].values.variance()
+                if(i != j && outputs[i].values.average() > outputs[j].values.average() +
+                        significanceCorrection * (Math.sqrt(outputs[i].values.variance()
                                 + outputs[j].values.variance())/Math.sqrt(numStates))) {
                     add = false;
                 }
@@ -175,28 +192,25 @@ public class Assignment3 {
 
         //Perform Local Search
         State currentState = selectRandomStart();
+        State neighbour;
+
         int m = budget;
         while(m > 0){
-            currentState = selectBestState(currentState,selectRandomNeighbor(currentState));
+            neighbour = selectRandomNeighbor(currentState);
+            runSingleRun(currentState.xval, currentState.yval);
+            runSingleRun(neighbour.xval, neighbour.yval);
+            currentState = selectBestState(currentState,neighbour);
             m -= 2;
         }
         return selectOptimalState();
     }
 
     public State selectBestState(State current, State neighbor){
-        MRG32k3a arrival = getStream();
-        MRG32k3a service = getStream();
-        runSingleRun(current.xval, current.yval);
-        runSingleRun(neighbor.xval, neighbor.yval);
-        int cur = calcPos(current.xval, current.yval);
-        int neigh = calcPos(neighbor.xval, neighbor.yval);
-        double current_results = outputs[cur].values.average();
-        double neighbour_results = outputs[neigh].values.average();
-        if(current_results > neighbour_results) {
-            return neighbor;
+
+        if(current.values.average() < neighbor.values.average()) {
+            return current;
         }
-        //Return best state
-        return current;
+        return neighbor;
     }
 
     public State selectRandomStart() {
@@ -209,8 +223,7 @@ public class Assignment3 {
         //Select a random neighbor
         int new_x = state.xval;;
         int new_y = state.yval;
-        boolean illegal = true;
-        while (illegal) {
+        while (true) {
             int neighbour = rng.nextInt(4);
             switch (neighbour) {
                 case 0:
@@ -221,11 +234,12 @@ public class Assignment3 {
                     break;
                 case 2:
                     new_y += 1;
+                    break;
                 case 3:
                     new_y -= 1;
+                    break;
             }
-            if(new_x <= xmax && (new_x >= xmin) && (new_y <= ymax) && (new_y >= ymin)) {
-                illegal = false;
+            if((new_x <= xmax) && (new_x >= xmin) && (new_y <= ymax) && (new_y >= ymin)) {
                 break; }
             new_x = state.xval;
             new_y = state.yval;
@@ -240,10 +254,14 @@ public class Assignment3 {
         //Perform CRN on (k,K) and (k2,K2) as parameters, average costs is result per run
         MRG32k3a arrival = getStream();
         MRG32k3a service = getStream();
+        MRG32k3a alt_arrival = arrival.clone();
+        MRG32k3a alt_service = service.clone();
         ThresholdQueue model = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k, K, arrival, service);
-        ThresholdQueue model2 = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k2, K2, arrival, service);
+        ThresholdQueue alt_model = new ThresholdQueue(arrivalRate, avgService, avgHighService, maxTime, k2, K2, alt_arrival, alt_service);
+        model.simulateOneRun();
+        alt_model.simulateOneRun();
         results[0] = model.getAverageCosts().average();
-        results[1] = model2.getAverageCosts().average();
+        results[1] = alt_model.getAverageCosts().average();
         return results;
     }
 
@@ -263,8 +281,8 @@ public class Assignment3 {
         int KMax = 20;
         int budget = 5000;
 
-//        Assignment3 crn = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
-//        crn.simulateCommonRandomNumbersRun(lower2,upper2);
+        Assignment3 crn = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
+        crn.simulateCommonRandomNumbersRun(lower2,upper2);
 //
 //        Assignment3 optimization = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
 //        State best = optimization.runLocalSearch();
