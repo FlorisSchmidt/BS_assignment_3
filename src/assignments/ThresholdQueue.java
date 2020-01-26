@@ -34,7 +34,7 @@ public class ThresholdQueue {
         double muLowInv = 2.0;      // Average service time
         double maxTime = 10000;      // Simulation endtime (seconds)
 
-//        new ThresholdQueue(lambdaInv, muLowInv, muHighInv, maxTime, lower, upper).simulateOneRun();
+        new ThresholdQueue(lambdaInv, muLowInv, muHighInv, maxTime, lower, upper).simulateOneRun();
         StatProbe test = new ThresholdQueue(lambdaInv, muLowInv, muHighInv, maxTime, lower, upper).getAverageCosts();
         System.out.println(test.average());
     }
@@ -97,7 +97,38 @@ public class ThresholdQueue {
     public ThresholdQueue(double arrivalRate, double avgServiceRate, double avgHighServiceRate, double stopTime, int k, int K, MRG32k3a arrival, MRG32k3a service) {
 
         // Build this initializer using the initializer above
+        this.arrivalRate = arrivalRate;
+        this.lowServiceRate = avgServiceRate;
+        this.highServiceRate = avgHighServiceRate;
+        this.k = k;
+        this.K = K;
+        this.stopTime = stopTime;
 
+        queue = new LinkedList<>();
+        stats = new ListOfStatProbes<>("Stats for Accumulate");
+        stats2 = new ListOfStatProbes<>("Stats for Tallies");
+
+        for (int i = 0; i < numServers; i++) {
+            String id = "server " + i;
+            Accumulate utilization = new Accumulate(id);
+            Accumulate runningCost = new Accumulate("cost server "+i);
+            stats.add(utilization);
+            stats.add(runningCost);
+            server = new Server(utilization,runningCost);
+        }
+
+        //Create inter arrival time, and service time generators
+        serviceTimeRNG = service;
+        arrivalProcess = new ArrivalProcess(arrival, arrivalRate);
+        stopEvent = new StopEvent();
+
+        //Create Tallies
+        waitTimeTally = new TallyStore("Waittime");
+        serviceTimeTally = new Tally("Servicetime");
+
+        //Add Tallies in ListOfStatProbes for later reporting
+        stats2.add(waitTimeTally);
+        stats2.add(serviceTimeTally);
     }
 
     public void simulateOneRun() {
