@@ -283,7 +283,7 @@ public class Assignment3 {
         optimization.runLocalSearch();
 
         Assignment3 optimization2 = new Assignment3(kMin, kMax, KMin, KMax, budget, lambdaInv, muLowInv, muHighInv, maxTime, lower, upper);
-        optimization2.runRankingSelection(100, 0.05);
+        optimization2.runRankingSelection(budget/2, 0.05);
     }
 
 }
