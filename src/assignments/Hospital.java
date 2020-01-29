@@ -55,8 +55,38 @@ public class Hospital {
     public double[] determineRegionLocation(int j) {
         // This function must be adjusted
         double[] location = new double[2];
-        location[0] = 0.0; // X-Coordinate of accident location
-        location[1] = 0.0; // Y-Coordinate of accident location
+        double hexagonRadius = 5;
+        double apothem = Math.sqrt(Math.pow(hexagonRadius,2) - Math.pow(hexagonRadius/2,2));
+        switch (j){
+            case 0:
+                location[0] = 0.0; // X-Coordinate of accident location
+                location[1] = 0.0; // Y-Coordinate of accident location
+                break;
+            case 1:
+                location[0] = 0.0;
+                location[1] = apothem*2;
+                break;
+            case 2:
+                location[0] = hexagonRadius*1.5;
+                location[1] = apothem;
+                break;
+            case 3:
+                location[0] = hexagonRadius*1.5;
+                location[1] = -apothem;
+                break;
+            case 4:
+                location[0] = 0.0;
+                location[1] = -apothem*2;
+                break;
+            case 5:
+                location[0] = -hexagonRadius*1.5;
+                location[1] = -apothem;
+                break;
+            case 6:
+                location[0] = -hexagonRadius*1.5;
+                location[1] = apothem;
+                break;
+        }
         return location;
     }
 
@@ -74,7 +104,7 @@ public class Hospital {
         for (int j = 0; j < numRegions; j++) {
             double[] baseLocation = determineRegionLocation(j);
             RandomStream arrivalRandomStream = getStream();
-            Region region = new Region(baseLocation[0], baseLocation[1], arrivalRandomStream, arrivalRates[j]);
+            Region region = new Region(baseLocation[0], baseLocation[1], arrivalRandomStream, arrivalRates[j], getStream(), j);
             regions[j] = region;
         }
         
@@ -113,16 +143,16 @@ public class Hospital {
         for (int j = 0; j < numRegions; j++) {
             double[] baseLocation = determineRegionLocation(j);
             RandomStream arrivalRandomStream = getStream();
-            Region region = new Region(baseLocation[0], baseLocation[1], arrivalRandomStream, arrivalRates[j]);
-            regions[j] = region;
+//            Region region = new Region(baseLocation[0], baseLocation[1], arrivalRandomStream, arrivalRates[j]);
+//            regions[j] = region;
         }
         
         for (int i = 0; i < numAmbulances; i++) {
             int region = determineBaseRegion(i);
             RandomStream serviceRandomStream = getStream();
-            Ambulance ambulance = new Ambulance(region, serviceRandomStream, serviceRate, outside);
-            ambulances[i] = ambulance;
-            regions[region].idleAmbulances.add(ambulance);
+//            Ambulance ambulance = new Ambulance(region, serviceRandomStream, serviceRate, outside);
+//            ambulances[i] = ambulance;
+//            regions[region].idleAmbulances.add(ambulance);
         }
         
         //Create stopEvent
