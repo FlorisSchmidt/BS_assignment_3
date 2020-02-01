@@ -32,7 +32,7 @@ public class Hospital {
     ListOfStatProbes<StatProbe> stats;
     
     public static void main(String[] args) {
-        int C = 1;                  //#Ambulances
+        int C = 20;                  //#Ambulances
         int regions = 7;            //#Regions
         double[] lambdas = {1./15,1./15,1./15,1./15,1./15,1./15,1./15};          //Arrival rates per region
         double mu = 1.0;           //Service rate

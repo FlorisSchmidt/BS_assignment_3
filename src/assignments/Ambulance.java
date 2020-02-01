@@ -12,7 +12,7 @@ import umontreal.ssj.stat.TallyStore;
 public class Ambulance extends Event {
     Region baseRegion;
     Accident currentCust; //Current customer in service
-    double responseTime = 15.0;
+    double responseTime = 15;
     boolean serveOutsideRegion;
     ExponentialGen serviceTimeGen;
     TallyStore waitTimeTally = new TallyStore("Waittime");
@@ -34,7 +34,8 @@ public class Ambulance extends Event {
     }
     
     public void serviceCompleted(Ambulance amb, Accident currentCust) {
-        currentCust.completed(Sim.time());
+        double returnToBaseTime = Math.sqrt(Math.pow(baseRegion.baseLocation[0],2)+Math.pow(baseRegion.baseLocation[1],2));
+        currentCust.completed(Sim.time() - returnToBaseTime);
         serviceTimeTally.add(currentCust.getServiceTime());
         waitTimeTally.add(currentCust.getWaitTime());
         if (currentCust.getWaitTime() < responseTime) {
@@ -45,7 +46,8 @@ public class Ambulance extends Event {
         }
         if(!amb.baseRegion.queue.isEmpty()) {
             Accident cust = amb.baseRegion.queue.removeFirst();
-            cust.serviceStarted(Sim.time());
+            amb.startService(cust, Sim.time());
+
         }
         else {
             amb.baseRegion.idleAmbulances.add(amb);
@@ -75,7 +77,7 @@ public class Ambulance extends Event {
         double serviceTime = serviceTimeGen.nextDouble();
         double busyServing; // Calculate the time needed to process the accident
         double returnToBaseTime = Math.sqrt(Math.pow(baseRegion.baseLocation[0],2)+Math.pow(baseRegion.baseLocation[1],2));
-        busyServing = serviceTime + drivingTimeToHostital(cust) +  + returnToBaseTime;
+        busyServing = serviceTime + drivingTimeToHostital(cust) + returnToBaseTime + time_to_accident;
         schedule(busyServing); //Schedule this event after serviceTime time units
     }
 }
