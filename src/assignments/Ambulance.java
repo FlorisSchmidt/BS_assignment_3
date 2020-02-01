@@ -11,6 +11,7 @@ import umontreal.ssj.stat.TallyStore;
  */
 public class Ambulance extends Event {
     Region baseRegion;
+    Region[] regions;
     Accident currentCust; //Current customer in service
     double responseTime = 15;
     boolean serveOutsideRegion;
@@ -26,9 +27,10 @@ public class Ambulance extends Event {
         serveOutsideRegion = false;
     }
     
-    public Ambulance(Region baseRegion, RandomStream rng, double serviceTimeRate, boolean outside) {
+    public Ambulance(int region, RandomStream rng, double serviceTimeRate, boolean outside, Region[] regions) {
         currentCust = null;
-        this.baseRegion = baseRegion;
+        this.baseRegion = regions[region];
+        this.regions = regions;
         serviceTimeGen = new ExponentialGen(rng, serviceTimeRate);
         serveOutsideRegion = outside;
     }
@@ -43,6 +45,9 @@ public class Ambulance extends Event {
         }
         else {
             withinTargetTally.add(0);
+        }
+        if (serveOutsideRegion) {
+
         }
         if(!amb.baseRegion.queue.isEmpty()) {
             Accident cust = amb.baseRegion.queue.removeFirst();

@@ -37,9 +37,9 @@ public class Hospital {
         double[] lambdas = {1./15,1./15,1./15,1./15,1./15,1./15,1./15};          //Arrival rates per region
         double mu = 1.0;           //Service rate
         double maxTime = 10000;    //Simulation endtime (minutes)
-        
-        new Hospital(C,lambdas,mu,maxTime,regions).start();
-        
+
+        new Hospital(C,lambdas,mu,maxTime,regions).serveAllRegions(C,lambdas,mu,maxTime,regions,true);
+
     }
     
     public void start() {
@@ -135,29 +135,29 @@ public class Hospital {
         this.serviceRate = serviceRate;
         this.stopTime = stopTime;
         this.numRegions = numRegions;
-        
+
         ambulances = new Ambulance[numAmbulances];
         regions = new Region[numRegions];
         stats = new ListOfStatProbes<>("Stats for Tallies");
-        
+
         for (int j = 0; j < numRegions; j++) {
             double[] baseLocation = determineRegionLocation(j);
             RandomStream arrivalRandomStream = getStream();
-//            Region region = new Region(baseLocation[0], baseLocation[1], arrivalRandomStream, arrivalRates[j]);
-//            regions[j] = region;
+            Region region = new Region(baseLocation[0], baseLocation[1], arrivalRandomStream, arrivalRates[j], getStream(), j);
+            regions[j] = region;
         }
-        
+
         for (int i = 0; i < numAmbulances; i++) {
             int region = determineBaseRegion(i);
             RandomStream serviceRandomStream = getStream();
-//            Ambulance ambulance = new Ambulance(region, serviceRandomStream, serviceRate, outside);
-//            ambulances[i] = ambulance;
-//            regions[region].idleAmbulances.add(ambulance);
+            Ambulance ambulance = new Ambulance(region, serviceRandomStream, serviceRate, outside, regions);
+            ambulances[i] = ambulance;
+            regions[region].idleAmbulances.add(ambulance);
         }
-        
+
         //Create stopEvent
         stopEvent = new StopEvent();
-        
+
         //Create Tallies
         waitTimeTally = new Tally("Waittime");
         serviceTimeTally = new Tally("Servicetime");
