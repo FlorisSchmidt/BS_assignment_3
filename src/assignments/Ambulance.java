@@ -34,17 +34,33 @@ public class Ambulance extends Event {
     }
     
     public void serviceCompleted(Ambulance amb, Accident currentCust) {
-        // Process the completed `customer'
+        currentCust.completed(Sim.time());
+        serviceTimeTally.add(currentCust.getServiceTime());
+        waitTimeTally.add(currentCust.getWaitTime());
+        if (currentCust.getWaitTime() < responseTime) {
+            withinTargetTally.add(1);
+        }
+        else {
+            withinTargetTally.add(0);
+        }
+        if(!amb.baseRegion.queue.isEmpty()) {
+            Accident cust = amb.baseRegion.queue.removeFirst();
+            cust.serviceStarted(Sim.time());
+        }
+        else {
+            amb.baseRegion.idleAmbulances.add(amb);
+        }
     }
 
     public double drivingTimeToAccident(Accident cust) {
-        // calculate the driving time from the baselocation of the ambulance to the accident location
-        return 0.0;
+        double [] location = cust.getLocation();
+        return Math.sqrt(Math.pow(location[0] - baseRegion.baseLocation[0],2)+Math.pow(location[1] - baseRegion.baseLocation[1],2));
     }
-    
+
     public double drivingTimeToHostital(Accident cust) {
         // calculate the driving time from accident location to the hospital
-        return 0.0;
+        double[] location = cust.getLocation();
+        return Math.sqrt(Math.pow(location[0],2)+Math.pow(location[1],2));
     }
 
     @Override
@@ -54,11 +70,12 @@ public class Ambulance extends Event {
 
     public void startService(Accident cust, double current) {
         currentCust = cust;
-        cust.serviceStarted(current);
-        
+        double time_to_accident = drivingTimeToAccident(cust);
+        cust.serviceStarted(current + time_to_accident);
         double serviceTime = serviceTimeGen.nextDouble();
-        double busyServing = 0.0; // Calculate the time needed to process the accident
-        
+        double busyServing; // Calculate the time needed to process the accident
+        double returnToBaseTime = Math.sqrt(Math.pow(baseRegion.baseLocation[0],2)+Math.pow(baseRegion.baseLocation[1],2));
+        busyServing = serviceTime + drivingTimeToHostital(cust) +  + returnToBaseTime;
         schedule(busyServing); //Schedule this event after serviceTime time units
     }
 }
