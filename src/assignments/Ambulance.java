@@ -51,61 +51,58 @@ public class Ambulance extends Event {
             amb.startService(cust, Sim.time());
         } else if (serveOutsideRegion) {
             //Allowed to serve outside of regions
-            int regionID = amb.baseRegion.regionID;
-            Accident finalCust = null;
-            // Check center region
-            if(!regions[0].queue.isEmpty()){
-                Accident cust = regions[0].queue.removeFirst();
+            Accident cust = getOutsideAccident(amb);
+            if(cust!=null){
                 amb.startService(cust,Sim.time());
             } else {
-                //Check outside regions from closes to longest distance away
-                int MAX_TIME = 12; // Possible extra constraint
-                for(int i = 1;i<4;i++){
-                    //Prevent going to region above 6 (doesn't exist
-                    if(regionID+i>6){
-                        if(!regions[regionID+i-6].queue.isEmpty()){
-                            Accident cust = regions[regionID+i-6].queue.getFirst();
-                            if(drivingTimeToAccident(cust)<MAX_TIME){
-                                finalCust = regions[regionID+i-6].queue.removeFirst();
-                                break;
-                            }
-                        }
-                        // Try going to region +1
-                    } else if(!regions[regionID+i].queue.isEmpty()){
-                        Accident cust = regions[regionID+i].queue.getFirst();
-                        if(drivingTimeToAccident(cust)<MAX_TIME){
-                            finalCust = regions[regionID+i].queue.removeFirst();
-                            break;
-                        }
-                    }
-                    //Prevent going to region below 0 (doesn't exist
-                    if(regionID-i<1){
-                        if(!regions[regionID-i+6].queue.isEmpty()){
-                            Accident cust = regions[regionID-i+6].queue.getFirst();
-                            if(drivingTimeToAccident(cust)<MAX_TIME){
-                                finalCust = regions[regionID-i+6].queue.removeFirst();
-                                break;
-                            }
-                        }
-                        // Try going to region -1
-                    } else if(!regions[regionID-i].queue.isEmpty()){
-                        Accident cust = regions[regionID-i].queue.getFirst();
-                        if(drivingTimeToAccident(cust)<MAX_TIME){
-                            finalCust = regions[regionID-i].queue.removeFirst();
-                            break;
-                        }
-                    }
-                }
-                // If no accident was found go idle
-                if(finalCust==null){
-                    amb.baseRegion.idleAmbulances.add(amb);
-                } else {
-                    amb.startService(finalCust,Sim.time());
-                }
+                amb.baseRegion.idleAmbulances.add(amb);
             }
         } else {
             amb.baseRegion.idleAmbulances.add(amb);
         }
+    }
+
+    private Accident getOutsideAccident(Ambulance amb){
+        int regionID = amb.baseRegion.regionID;
+        // Check center region
+        if(!regions[0].queue.isEmpty()){
+            return regions[0].queue.removeFirst();
+        }
+        //Check outside regions from closes to longest distance away
+        int MAX_TIME = 12; // Possible extra constraint
+        for(int i = 1;i<4;i++){
+            //Prevent going to region above 6 (doesn't exist
+            if(regionID+i>6){
+                if(!regions[regionID+i-6].queue.isEmpty()){
+                    Accident cust = regions[regionID+i-6].queue.getFirst();
+                    if(drivingTimeToAccident(cust)<MAX_TIME){
+                        return regions[regionID+i-6].queue.removeFirst();
+                    }
+                }
+                // Try going to region +1
+            } else if(!regions[regionID+i].queue.isEmpty()){
+                Accident cust = regions[regionID+i].queue.getFirst();
+                if(drivingTimeToAccident(cust)<MAX_TIME){
+                    return regions[regionID+i].queue.removeFirst();
+                }
+            }
+            //Prevent going to region below 0 (doesn't exist
+            if(regionID-i<1){
+                if(!regions[regionID-i+6].queue.isEmpty()){
+                    Accident cust = regions[regionID-i+6].queue.getFirst();
+                    if(drivingTimeToAccident(cust)<MAX_TIME){
+                        return regions[regionID-i+6].queue.removeFirst();
+                    }
+                }
+                // Try going to region -1
+            } else if(!regions[regionID-i].queue.isEmpty()){
+                Accident cust = regions[regionID-i].queue.getFirst();
+                if(drivingTimeToAccident(cust)<MAX_TIME){
+                    return regions[regionID-i].queue.removeFirst();
+                }
+            }
+        }
+        return null;
     }
 
     public double drivingTimeToAccident(Accident cust) {
