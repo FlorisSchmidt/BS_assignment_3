@@ -38,8 +38,8 @@ public class Hospital {
         double mu = 1.0;           //Service rate
         double maxTime = 10000;    //Simulation endtime (minutes)
 
-        new Hospital(C,lambdas,mu,maxTime,regions).serveAllRegions(C,lambdas,mu,maxTime,regions,true);
-
+        new Hospital(C,lambdas,mu,maxTime,regions).start();
+        System.out.println(new Hospital(C,lambdas,mu,maxTime,regions).serveAllRegions(C,lambdas,mu,maxTime,regions,true).report());
     }
     
     public void start() {
@@ -49,7 +49,28 @@ public class Hospital {
     
     public int determineBaseRegion(int ambulanceNumber) {
         // This function can be altered to test different ambulance placements
-        return ambulanceNumber % numRegions;
+            if(ambulanceNumber<2){
+                return 0;
+            }
+            if(ambulanceNumber<5){
+                return 1;
+            }
+            if (ambulanceNumber<8) {
+                return 2;
+            }
+            if (ambulanceNumber<11){
+                return 3;
+            }
+            if(ambulanceNumber<14){
+                return 4;
+            }
+            if(ambulanceNumber<17){
+                return 5;
+            }
+            if(ambulanceNumber<20){
+                return 6;
+            }
+            return 0;
     }
 
     public double[] determineRegionLocation(int j) {
