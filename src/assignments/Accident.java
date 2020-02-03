@@ -32,10 +32,6 @@ public class Accident {
         return result;
     }
     
-    public int getRegion() {
-        return region;
-    }
-    
     public double getServiceTime() {
         return serviceTime;
     }
