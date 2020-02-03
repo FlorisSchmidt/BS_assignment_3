@@ -220,17 +220,6 @@ public class Hospital {
         return stats;
     }
     
-    public int[] getAllocation() {
-        int[] output = new int[numAmbulances];
-        
-        for (int i = 0; i < numAmbulances; i++) {
-            int region = determineBaseRegion(i);
-            output[i] = region;
-        }
-        
-        return output;
-    }
-    
     public ListOfStatProbes serveAllRegions(int numAmbulances, double[] arrivalRates, double serviceRate, double stopTime, int numRegions, boolean outside) {
         ListOfStatProbes output = new Hospital(numAmbulances, arrivalRates, serviceRate, stopTime, numRegions, outside).simulateEmergencies();
         return output;
