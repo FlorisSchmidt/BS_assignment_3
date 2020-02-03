@@ -32,7 +32,7 @@ public class Region {
     public void handleArrival() {
         // process a new arrival
         double[] accidentLocation = drawLocation();
-        Accident accident = new Accident(Sim.time(),accidentLocation[0],accidentLocation[1],regionID);
+        Accident accident = new Accident(Sim.time(),accidentLocation[0],accidentLocation[1]);
         if(queue.isEmpty() && !idleAmbulances.isEmpty()){
             Ambulance amb = idleAmbulances.removeFirst();
             amb.startService(accident,Sim.time());
