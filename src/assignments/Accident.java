@@ -7,7 +7,6 @@ package assignments;
 public class Accident {
     private double arrivalTime;
     private double startTime;
-    private double completionTime;
     private double waitTime;
     private double serviceTime;
     private double xLocation;
@@ -55,7 +54,6 @@ public class Accident {
     //Call this method when the service for this
     //customer completed
     public void completed(double current) {
-        this.completionTime = current;
         this.serviceTime = current - this.startTime;
     }
     
