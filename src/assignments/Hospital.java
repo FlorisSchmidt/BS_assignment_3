@@ -36,7 +36,7 @@ public class Hospital {
         int regions = 7;            //#Regions
         double[] lambdas = {1./15,1./15,1./15,1./15,1./15,1./15,1./15};          //Arrival rates per region
         double mu = 1.0;           //Service rate
-        double maxTime = 10000;    //Simulation endtime (minutes)
+        double maxTime = 1000000;    //Simulation endtime (minutes)
 
         new Hospital(C,lambdas,mu,maxTime,regions).start();
         System.out.println(new Hospital(C,lambdas,mu,maxTime,regions).serveAllRegions(C,lambdas,mu,maxTime,regions,true).report());
@@ -67,10 +67,7 @@ public class Hospital {
             if(ambulanceNumber<17){
                 return 5;
             }
-            if(ambulanceNumber<20){
-                return 6;
-            }
-            return 0;
+            return 6;
     }
 
     public double[] determineRegionLocation(int j) {
